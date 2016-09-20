@@ -1,9 +1,9 @@
-This dupper template repository is for `mean stack <https://github.com/linnovate/mean>`_ + `Cloud 9 SDK <https://github.com/c9/core>`_ (c9).
+This dupper template repository is for `Mean Stack <https://github.com/linnovate/mean>`_ + `Cloud 9 SDK <https://github.com/c9/core>`_ (c9).
 
 Mean stack + C9
 ===============
 
-This template install `mean stack <https://github.com/linnovate/mean>`_ and `Cloud 9 SDK <https://github.com/c9/core>`_. You can start mean stack with c9 sdk using below commands:
+This template install `Mean stack <https://github.com/linnovate/mean>`_ and `Cloud 9 SDK <https://github.com/c9/core>`_. You can start mean stack with c9 sdk using below commands:
 
 .. code-block:: bash
 
