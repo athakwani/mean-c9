@@ -3,7 +3,7 @@
   [
     "35729:35729",
     "8000:8000",
-    "3000:3000",
+    "3000:3000"
   ],  
   env:
   [
@@ -53,54 +53,101 @@
     }     
   ],
   commands: {
-    deploy: [{
+    start: [{
       server:
       '''
+         # Check Mogodb service and start if not running
          service mongodb status > /dev/null 2>&1
          if [[ $? -ne 0 ]]
          then
             service mongodb start
          fi
-        
-         PORT=3000 start-stop-daemon -b --start --quiet --oknodo \
-         --pidfile /var/run/gulp.pid -d $REPO_ROOT --exec /usr/bin/node \
-         -- server.js
+
+         # Start Gulp as Daemon
+         PORT=3000 daemon --name="gulp" --output=gulp.out -F /var/run/gulp.pid -D $REPO_ROOT -X /usr/bin/gulp        
+
+         echo "MEAN stack ..... [ STARTING ]"
+         
+         # Check for Server start
+         timeout 20 bash -c -- "while true; do wget -q --retry-connrefused \
+         --waitretry=1 --read-timeout=20 --timeout=15 -t 0 --continue 159.203.234.168:3000 >/dev/null 2>&1; \
+         if [ $? = 0 ]; then break; fi; sleep 2s; done"
+
+         # Report status
+         _exit_code=$?   
+         if [[ $_exit_code -eq 0 ]]
+         then
+             echo -e "MEAN stack ..... [ STARTED ]"
+         else
+             echo -e "MEAN stack ..... [ TIMEOUT ]"
+         fi
+
+         # Pass Status to client
+         _export _exit_code
       '''
     },{
       client:
       '''
-        echo "Waiting for server to start ....."
-        while [ 1 ]; do
-          wget -q --retry-connrefused --waitretry=1 --read-timeout=20 \
-          --timeout=15 -t 0 --continue $SERVER_IP:3000 >/dev/null 2>&1
-          if [ $? = 0 ]; then break; fi;
-          sleep 2s;
-        done;
-        echo "Server started ....."
-
-        os="$(uname -s)"
-        if [[ $os == "Darwin" ]]; then
-            open http://$SERVER_IP:3000/
-        fi        
-      '''    
+         # Open browser on Mac if server started successfully.
+         if [[ $_exit_code -eq 0 ]]
+         then
+             os="$(uname -s)"
+             if [[ $os == "Darwin" ]]; then
+                 echo -e "Opening Browser"
+                 open http://$SERVER_IP:3000/
+             fi        
+         fi
+      '''
     }],
+    stop: [{
+      server:
+      '''
+          # Get group ID of Gulp daemon process
+          pgid=$(ps --no-headers -o pgid $(cat /var/run/gulp.pid))
+          pgid=$(echo $pgid | tr -d '[[:space:]]')
+
+          # Kill all group processes
+          pkill -1 -g $pgid
+
+          echo "MEAN stack ..... [ STOPPING ]"
+
+          # Check for termination and report status
+          timeout 5 bash -c -- "while true; do [ -f /var/run/gulp.pid ]; \
+          if [ $? -eq 0 ]; then break; fi; sleep 2s; done"
+          _exit_code=$?
+
+          if [[ $_exit_code -eq 0 ]]
+          then
+              echo -e "MEAN stack ..... [ STOPPED ]"
+          else
+              echo -e "MEAN stack ..... [ TIMEOUT ]"
+          fi
+      '''
+    }],    
+    logs: [{
+      server:
+      '''
+          tail -n 1000 $REPO_ROOT/gulp.out
+      '''
+    }],    
     c9: [{
       server:
       '''
-        # Start debugger in background detached from terminal
-        start-stop-daemon -b --start --quiet --oknodo \
-        --pidfile /var/run/c9.pid --exec $HOME/.c9/node/bin/node \
-        -- /root/cloud9/server.js --listen 0.0.0.0 --port 8000 -w $REPO_ROOT
-        exit_code=$?
-        _export exit_code
+          # Start debugger in background detached from terminal
+          start-stop-daemon -b --start --quiet --oknodo \
+          --pidfile /var/run/c9.pid --exec $HOME/.c9/node/bin/node \
+          -- /root/cloud9/server.js --listen 0.0.0.0 --port 8000 -w $REPO_ROOT
+          exit_code=$?
+          _export exit_code
       '''
     },{
       client:
       '''
-        os="$(uname -s)"
-        if [[ $os == "Darwin" ]]; then
-            [ $exit_code -eq 0 ] && open http://$SERVER_IP:8000/
-        fi        
+         # Open browser on Mac if C9 started successfully
+          os="$(uname -s)"
+          if [[ $os == "Darwin" ]]; then
+              [ $exit_code -eq 0 ] && open http://$SERVER_IP:8000/  
+          fi        
       '''
     }]    
   }

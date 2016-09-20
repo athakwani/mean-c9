@@ -10,36 +10,30 @@ This template install `Mean stack <https://github.com/linnovate/mean>`_ and `Clo
   dupper dup --template-from=https://github.com/athakwani/mean-c9 https://github.com/linnovate/mean
   dupper exec mean c9
   
-Dependencies
-============
-
-* mongodb
-* nodejs
-* npm
-* bower
-* gulp
-* npm packages
-* bower packages
-* build-essential 
-* g++
-* curl
-* libssl-dev
-* apache2-utils
-* libxml2-dev
-* sshfs 
-* python2.7 
-* python2.7-dev
-* `c9-sdk <https://github.com/c9/core>`_
     
 Commands
 ========
 
-* deploy - Start mean stack
+* start - Starts mean stack
 
 .. code-block:: bash
 
     Usage:
-    dupper exec mean deploy
+    dupper exec mean start
+
+* stop - Stops mean stack
+
+.. code-block:: bash
+
+    Usage:
+    dupper exec mean stop
+
+* logs - Displat gulp output
+
+.. code-block:: bash
+
+    Usage:
+    dupper exec mean logs
 
 * c9 - Start Cloud 9 SDK
     
