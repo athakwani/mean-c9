@@ -1,4 +1,4 @@
-This dupper template repository is for mean stack `linnovate/mean <https://github.com/linnovate/mean>`_ + Cloud 9 development environment SDK (c9).
+This dupper template repository is for `mean stack <https://github.com/linnovate/mean>`_ + `Cloud 9 SDK <https://github.com/c9/core>`_ (c9).
 
 Mean stack + C9
 ===============
