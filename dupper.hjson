@@ -1,0 +1,100 @@
+{
+  ports: 
+  [
+    "35729:35729",
+    "8000:8000",
+    "3000:3000",
+  ],  
+  env:
+  [
+    "NODE_ENV=development",
+    "PORT=3000"
+  ],
+  dependencies: 
+  [
+    {
+      name: "linux-dependencies",
+      cmd:
+      '''
+        apt-get -y install curl
+        curl -sL  https://deb.nodesource.com/setup_4.x | bash -
+        apt-get -y install mongodb nodejs daemon
+      '''
+    },
+    {
+      name: "nodejs-dependencies",
+      cmd:
+      '''
+        npm install -g bower gulp
+        cd $REPO_ROOT
+        npm install
+      ''',
+      watch: "package.json"
+    },
+    {
+      name: "bower-dependencies",
+      cmd:
+      '''
+        cd $REPO_ROOT
+        bower install --allow-root
+      ''',
+      watch: "bower.json"
+    },
+    {
+      name: "cloud-9-sdk-dependencies",
+      cmd:
+      '''    
+        apt-get install -y build-essential g++ curl libssl-dev apache2-utils libxml2-dev sshfs python2.7 python2.7-dev
+        git clone https://github.com/c9/core.git cloud9
+        cd cloud9
+        scripts/install-sdk.sh
+        sed -i -e 's_127.0.0.1_0.0.0.0_g' configs/standalone.js 
+      '''
+    }     
+  ],
+  commands: {
+    deploy: [{
+      server:
+      '''
+         service mongodb status > /dev/null 2>&1
+         if [[ $? -ne 0 ]]
+         then
+            service mongodb start
+         fi
+        
+         PORT=3000 start-stop-daemon -b --start --quiet --oknodo \
+         --pidfile /var/run/gulp.pid -d $REPO_ROOT --exec /usr/bin/node \
+         -- server.js
+      '''
+    },{
+      client:
+      '''
+        echo "Waiting for server to start ....."
+        while [ 1 ]; do
+          wget -q --retry-connrefused --waitretry=1 --read-timeout=20 \
+          --timeout=15 -t 0 --continue $SERVER_IP:3000 >/dev/null 2>&1
+          if [ $? = 0 ]; then break; fi;
+          sleep 2s;
+        done;
+        echo "Server started ....."
+        open http://$SERVER_IP:3000/
+      '''    
+    }],
+    c9: [{
+      server:
+      '''
+        # Start debugger in background detached from terminal
+        start-stop-daemon -b --start --quiet --oknodo \
+        --pidfile /var/run/c9.pid --exec $HOME/.c9/node/bin/node \
+        -- /root/cloud9/server.js --listen 0.0.0.0 --port 8000 -w $REPO_ROOT
+        exit_code=$?
+        _export exit_code
+      '''
+    },{
+      client:
+      '''
+        [ $exit_code -eq 0 ] && open http://$SERVER_IP:8000/
+      '''
+    }]    
+  }
+}
