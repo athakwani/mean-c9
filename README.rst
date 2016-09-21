@@ -28,13 +28,19 @@ Commands
     Usage:
     dupper exec mean stop
 
-* logs - Displat gulp output
+* debug - Start node debugger
+
+.. code-block:: bash
+
+    Usage:
+    dupper exec mean debug
+
+* logs - Display gulp output
 
 .. code-block:: bash
 
     Usage:
     dupper exec mean logs
-
 * c9 - Start Cloud 9 SDK
     
 .. code-block:: bash
