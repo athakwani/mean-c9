@@ -26,7 +26,7 @@
       name: "nodejs-dependencies",
       cmd:
       '''
-        npm install -g bower gulp
+        npm install -g bower gulp node-inspector
         cd $REPO_ROOT
         npm install
       ''',
